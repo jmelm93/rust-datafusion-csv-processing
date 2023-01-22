@@ -9,8 +9,10 @@ use datafusion::arrow::datatypes::{
     
 };
 
+use arrow::json;
+
 // use serde::{ Deserialize };
-// use serde_json::to_string;
+use serde_json::to_string;
 
 use std::sync::Arc;
 use std::str;
@@ -86,37 +88,49 @@ async fn main() {
     deref_df.clone().show().await.expect("An error occurred while showing the CSV DataFrame");
 
     // collect to vec
-    let data = deref_df.clone().collect().await.expect("An error occurred while collecting the CSV DataFrame");
+    let record_batches = deref_df.clone().collect().await.expect("An error occurred while collecting the CSV DataFrame");
     // println!("Data: {:?}", data);
+    
+    // record_batches == <Vec<RecordBatch>>. Convert to RecordBatch
+    let record_batch = record_batches[0].clone();
+
+    // let json_string = to_string(&record_batch).unwrap();
+
+    // let mut writer = datafusion::json::writer::RecordBatchJsonWriter::new(vec![]);
+    // writer.write(&record_batch).unwrap();
+    // let json_rows = writer.finish();
+    
+    let json_rows = json::writer::record_batches_to_json_rows(&[record_batch]);
+
+    println!("JSON: {:?}", json_rows);
 
     // get final values from recordbatch
     // https://docs.rs/arrow/latest/arrow/record_batch/struct.RecordBatch.html
     // https://users.rust-lang.org/t/how-to-use-recordbatch-in-arrow-when-using-datafusion/70057/2
     // https://github.com/apache/arrow-rs/blob/6.5.0/arrow/src/util/pretty.rs
-    let data_vec = data.to_vec();
+    // let record_batches_vec = record_batches.to_vec();
 
-    let mut header = Vec::new();
-    // let mut rows = Vec::new();
+    // let mut header = Vec::new();
+    // // let mut rows = Vec::new();
 
-    for record_batch in data_vec {
-        // get data
-        println!("record_batch.columns: : {:?}", record_batch.columns());
-        for col in record_batch.columns() {
-            for row in 0..col.len() {
-                // println!("Cow: {:?}", col);
-                // println!("Row: {:?}", row);
-                // let value = col.as_any().downcast_ref::<StringArray>().unwrap().value(row);
-                // rows.push(value);
-            }
-        }
-        // get headers
-        for field in record_batch.schema().fields() {
-            header.push(field.name().to_string());
-        }
-    };
+    // for record_batch in data_vec {
+    //     // get data
+    //     println!("record_batch.columns: : {:?}", record_batch.columns());
+    //     for col in record_batch.columns() {
+    //         for row in 0..col.len() {
+    //             // println!("Cow: {:?}", col);
+    //             // println!("Row: {:?}", row);
+    //             // let value = col.as_any().downcast_ref::<StringArray>().unwrap().value(row);
+    //             // rows.push(value);
+    //         }
+    //     }
+    //     // get headers
+    //     for field in record_batch.schema().fields() {
+    //         header.push(field.name().to_string());
+    //     }
+    // };
 
-    println!("Header: {:?}", header);
-    // println!("Rows: {:?}", rows);
+    // println!("Header: {:?}", header);
     
     // Delete temp csv
     create_or_delete_csv_file(file_name_string.clone(), None, "delete");
