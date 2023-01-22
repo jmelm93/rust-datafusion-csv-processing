@@ -1,0 +1,11 @@
+[package]
+name = "rust-csv-processing"
+version = "0.1.0"
+authors = ["testing"]
+edition = "2021"
+
+[dependencies]
+serde_json = "1.0.91"
+serde = { version = "1.0.152", features = ["derive"] }
+datafusion = "16.0.0"
+tokio = { version = "1.0", features = ["macros", "rt", "rt-multi-thread", "sync", "parking_lot"] }
